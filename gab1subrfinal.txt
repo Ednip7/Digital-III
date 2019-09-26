@@ -1,0 +1,110 @@
+.org 1500h
+.data 77h, 44h, 3eh, aeh, 4dh, 6bh, 7bh, 46h, 7fh, 4fh
+	lxi sp,4000h
+	in 00h
+	sta 2000h
+	in 01h
+	sta 2001h
+	
+	in 02h
+	sta 2002h	
+	in 03h
+	sta 2003h
+
+	lxi h,2000h
+	shld 3000h
+	
+	call coun
+	mov c,d; guarda en c la cantidad de unos del dato 1
+	call coun	
+	mov a,d
+	mov b,a; guarda en b la cantidad de unos del dato 2
+	sub c; determina dato mayor
+	jm d1Md2
+d2Md1:	mov m,b; guarda en memoria (2004) el mayor
+	inx h
+	mov m,c; guarda en mem (2005)el menor
+	inx h
+	mov m,a; guarda en mem (2006) la diferencia
+	jmp fin
+d1Md2:	mov a,c; guarda en mem (2004) el mayor
+	mov m,a
+	inx h
+	sub b
+	mov m,b; guarda en mem (2005) el menor
+	inx h
+	mov m,a; guarda en mem (2006) el resultado
+	
+	dcx h
+	sub m; rdo - sust
+	dcx h
+	;jnz dob
+	jm sigue
+	mvi a,01h
+	out 08h
+	
+sigue:	mov a,m
+	cpi 9
+	jm dm9
+	mvi a,44h
+	out 00h
+dm9:	call searc
+	out 01h
+	inx h
+
+	mov a,m
+	cpi 9
+	jm d2m9
+	mvi a,44h
+	out 03h
+d2m9:	call searc
+	out 04h
+	inx h
+
+	mov a,m
+	cpi 9
+	jm d2m9
+	mvi a,44h
+	out 03h
+d2m9:	call searc
+	out 04h
+
+
+coun: push b; preservo b en pila
+	mvi d,08
+	lhld 3000h
+	mov b,m
+	inx h
+	mov c,m; dato de memoria a bc para contar cantidad de unos
+	inx h
+	shld 3000h; actualizo puntero para en la proxima cuenta contar el prox numero
+	mov a,b
+	ora a
+	jz co_pl
+	mov a,b
+loop1:	ral
+	jc sav_1
+	dcr d
+	jnz loop1
+sav_1:	mov a,d
+	adi 08
+	mov d,a
+	pop b
+	ret
+co_pl:	mov a,c
+loop2:	ral
+	jc sav_2
+	dcr d
+	jnz loop2
+sav_2:	pop b
+	ret
+
+searc:	push h
+	mov a,m
+	lxi h,0fffh
+loop3:	inx h
+	cmp l
+	jnz loop3
+	mov a,m
+
+fin: hlt
